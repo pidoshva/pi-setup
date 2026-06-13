@@ -23,6 +23,9 @@ fi
 mkdir -p "$AGENT_DIR/themes" "$AGENT_DIR/extensions"
 cp "$ROOT/themes/neon-friendly.json" "$AGENT_DIR/themes/neon-friendly.json"
 cp "$ROOT/extensions/neon-footer.ts" "$AGENT_DIR/extensions/neon-footer.ts"
+if [[ -f "$ROOT/extensions/pr-browser.ts" ]]; then
+  cp "$ROOT/extensions/pr-browser.ts" "$AGENT_DIR/extensions/pr-browser.ts"
+fi
 cp "$ROOT/config/spinner-verbs.json" "$AGENT_DIR/spinner-verbs.json"
 
 python3 "$ROOT/scripts/patch-pi.py" "$PI_PACKAGE_DIR"
