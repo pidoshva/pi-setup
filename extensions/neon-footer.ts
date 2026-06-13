@@ -42,8 +42,7 @@ function footerColor(text: string, color: string) {
 }
 
 function pill(theme: any, label: string, value: string, color: string = "accent") {
-  const labelColor = color === "footerOrange" ? "footerLavender" : color;
-  const labelText = footerColor(label, labelColor) ?? theme.fg("dim", label);
+  const labelText = theme.fg("dim", label);
   const valueText = footerColor(value, color) ?? theme.fg(color, value);
   return `${labelText} ${valueText}`;
 }
