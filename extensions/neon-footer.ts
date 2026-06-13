@@ -28,10 +28,24 @@ function fmt(n: number) {
 
 const footerMagenta = (text: string) => `\x1b[38;2;192;132;252m${text}\x1b[0m`;
 const footerOrange = (text: string) => `\x1b[38;2;255;158;100m${text}\x1b[0m`;
+const footerCyan = (text: string) => `\x1b[38;2;125;207;255m${text}\x1b[0m`;
+const footerGreen = (text: string) => `\x1b[38;2;52;211;153m${text}\x1b[0m`;
+const footerLavender = (text: string) => `\x1b[38;2;167;139;250m${text}\x1b[0m`;
+
+function footerColor(text: string, color: string) {
+  if (color === "footerMagenta") return footerMagenta(text);
+  if (color === "footerOrange") return footerOrange(text);
+  if (color === "footerCyan") return footerCyan(text);
+  if (color === "footerGreen") return footerGreen(text);
+  if (color === "footerLavender") return footerLavender(text);
+  return undefined;
+}
 
 function pill(theme: any, label: string, value: string, color: string = "accent") {
-  const valueText = color === "footerMagenta" ? footerMagenta(value) : color === "footerOrange" ? footerOrange(value) : theme.fg(color, value);
-  return `${theme.fg("dim", label)} ${valueText}`;
+  const labelColor = color === "footerOrange" ? "footerLavender" : color;
+  const labelText = footerColor(label, labelColor) ?? theme.fg("dim", label);
+  const valueText = footerColor(value, color) ?? theme.fg(color, value);
+  return `${labelText} ${valueText}`;
 }
 
 function fitLine(line: string, width: number) {
@@ -81,9 +95,9 @@ function installFooter(ctx: Parameters<Parameters<ExtensionAPI["on"]>[1]>[1]) {
         if (repoName && branch) {
           topLeftParts.push(
             theme.fg("dim", "│"),
-            pill(theme, "repo", repoName, "footerMagenta"),
+            pill(theme, "repo", repoName, "footerCyan"),
             theme.fg("dim", "on"),
-            footerOrange(branch),
+            footerGreen(branch),
           );
         }
         const topLeft = topLeftParts.join(" ");
