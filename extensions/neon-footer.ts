@@ -63,7 +63,8 @@ function installFooter(ctx: Parameters<Parameters<ExtensionAPI["on"]>[1]>[1]) {
         const branch = footerData.getGitBranch();
         const repoName = (footerData as any).getGitRepoName?.();
         const statuses = [...footerData.getExtensionStatuses().values()].filter(Boolean);
-        const cwd = basename(ctx.cwd || process.cwd());
+        const liveCwd = (footerData as any).getCwd?.() ?? ctx.cwd ?? process.cwd();
+        const cwd = basename(liveCwd);
         const model = ctx.model?.id || "no model";
         const contextUsage = ctx.getContextUsage?.();
         const contextPercent = contextUsage?.percent ?? null;

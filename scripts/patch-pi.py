@@ -38,7 +38,7 @@ def main() -> int:
 
     patch(footer_data, [
         ('import { dirname, join, resolve } from "path";', 'import { basename, dirname, join, resolve } from "path";'),
-        ('''    /** Extension status texts set via ctx.ui.setStatus() */\n    getExtensionStatuses() {''', '''    /** Whether the current cwd itself is a git repository root. */\n    isCwdGitRepository() {\n        return !!this.gitPaths && resolve(this.cwd) === resolve(this.gitPaths.repoDir);\n    }\n    /** Current git repository root name, null when cwd is not a repo root. */\n    getGitRepoName() {\n        return this.isCwdGitRepository() ? basename(this.gitPaths.repoDir) : null;\n    }\n    /** Extension status texts set via ctx.ui.setStatus() */\n    getExtensionStatuses() {'''),
+        ('''    /** Extension status texts set via ctx.ui.setStatus() */\n    getExtensionStatuses() {''', '''    /** Current footer cwd. */\n    getCwd() {\n        return this.cwd;\n    }\n    /** Whether the current cwd itself is a git repository root. */\n    isCwdGitRepository() {\n        return !!this.gitPaths && resolve(this.cwd) === resolve(this.gitPaths.repoDir);\n    }\n    /** Current git repository root name, null when cwd is not a repo root. */\n    getGitRepoName() {\n        return this.isCwdGitRepository() ? basename(this.gitPaths.repoDir) : null;\n    }\n    /** Extension status texts set via ctx.ui.setStatus() */\n    getExtensionStatuses() {'''),
     ])
 
     patch(tui, [
