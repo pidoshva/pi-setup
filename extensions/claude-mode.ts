@@ -22,6 +22,28 @@ const READ_ONLY_TOOL_ALLOWLIST = new Set([
   "recall",
 ]);
 
+const MUTATING_TOOLS = new Set([
+  "edit",
+  "write",
+  "create_plan_artifact",
+  "linear_cli",
+  "jira_cli",
+  "todo_cli",
+  "launchdarkly_cli",
+  "auth0_cli",
+  "retain",
+]);
+
+const ALWAYS_CONFIRM_TOOLS = new Set([
+  "edit",
+  "write",
+  "bash",
+  "linear_cli",
+  "jira_cli",
+  "launchdarkly_cli",
+  "auth0_cli",
+]);
+
 const DESTRUCTIVE_BASH_PATTERNS = [
   /(^|\s)(rm|rmdir|mv|cp|mkdir|touch|chmod|chown|chgrp|ln|tee|truncate|dd|shred)\b/i,
   /(^|[^<])>(?!>)/,
@@ -31,10 +53,36 @@ const DESTRUCTIVE_BASH_PATTERNS = [
   /\bbrew\s+(install|uninstall|upgrade)\b/i,
   /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|stash|cherry-pick|revert|tag|init|clone)\b/i,
   /\b(sudo|su|kill|pkill|killall|reboot|shutdown)\b/i,
+  /\b(prod|production|orderprotection-prod)\b/i,
+];
+
+const HIGH_RISK_BASH_PATTERNS = [
+  /\b(rm\s+-rf|sudo|su|kill|pkill|killall|reboot|shutdown)\b/i,
+  /\bgit\s+(push|reset|rebase|checkout|clean|merge|commit|tag)\b/i,
+  /\b(prod|production|orderprotection-prod)\b/i,
+  /\b(kubectl|gcloud|terraform|pulumi)\b/i,
 ];
 
 function isReadOnlyBash(command: string): boolean {
   return !DESTRUCTIVE_BASH_PATTERNS.some(pattern => pattern.test(command));
+}
+
+function isHighRiskBash(command: string): boolean {
+  return HIGH_RISK_BASH_PATTERNS.some(pattern => pattern.test(command));
+}
+
+function summarizeToolCall(toolName: string, input: unknown): string {
+  if (toolName === "bash") {
+    const command = String((input as { command?: unknown }).command ?? "");
+    return command.length > 500 ? `${command.slice(0, 500)}…` : command;
+  }
+
+  try {
+    const json = JSON.stringify(input, null, 2);
+    return json.length > 700 ? `${json.slice(0, 700)}…` : json;
+  } catch {
+    return String(input);
+  }
 }
 
 function label(mode: ClaudeMode): string {
@@ -138,25 +186,62 @@ export default function claudeMode(pi: ExtensionAPI): void {
     systemPrompt: event.systemPrompt + instructions(mode),
   }));
 
-  pi.on("tool_call", async event => {
-    if (mode !== "plan") return;
+  pi.on("tool_call", async (event, ctx) => {
+    if (mode === "plan") {
+      if (event.toolName === "bash") {
+        const command = String((event.input as { command?: unknown }).command ?? "");
+        if (!isReadOnlyBash(command)) {
+          return {
+            block: true,
+            reason: `Plan mode blocks destructive bash commands. Switch to normal/auto with Shift+Tab or /mode auto to execute.\nCommand: ${command}`,
+          };
+        }
+        return;
+      }
 
-    if (event.toolName === "bash") {
-      const command = String((event.input as { command?: unknown }).command ?? "");
-      if (!isReadOnlyBash(command)) {
+      if (!READ_ONLY_TOOL_ALLOWLIST.has(event.toolName)) {
         return {
           block: true,
-          reason: `Plan mode blocks destructive bash commands. Switch to normal/auto with Shift+Tab or /mode auto to execute.\nCommand: ${command}`,
+          reason: `Plan mode blocks tool '${event.toolName}'. Switch to normal/auto with Shift+Tab or /mode auto to execute.`,
         };
       }
       return;
     }
 
-    if (!READ_ONLY_TOOL_ALLOWLIST.has(event.toolName)) {
-      return {
-        block: true,
-        reason: `Plan mode blocks tool '${event.toolName}'. Switch to normal/auto with Shift+Tab or /mode auto to execute.`,
-      };
+    if (mode === "normal") {
+      const requiresConfirmation = ALWAYS_CONFIRM_TOOLS.has(event.toolName) || MUTATING_TOOLS.has(event.toolName);
+      if (!requiresConfirmation) return;
+
+      const ok = await ctx.ui.confirm(
+        `Allow ${event.toolName}?`,
+        `Normal mode requires approval before this action.\n\n${summarizeToolCall(event.toolName, event.input)}`,
+      );
+      if (!ok) {
+        return { block: true, reason: `User denied ${event.toolName} in normal mode.` };
+      }
+      return;
+    }
+
+    if (mode === "auto") {
+      if (event.toolName === "bash") {
+        const command = String((event.input as { command?: unknown }).command ?? "");
+        if (!isHighRiskBash(command)) return;
+
+        const ok = await ctx.ui.confirm(
+          "Allow high-risk bash command?",
+          `Auto mode still requires approval for high-risk commands.\n\n${command}`,
+        );
+        if (!ok) return { block: true, reason: "User denied high-risk bash command in auto mode." };
+        return;
+      }
+
+      if (event.toolName === "auth0_cli" || event.toolName === "launchdarkly_cli") {
+        const ok = await ctx.ui.confirm(
+          `Allow ${event.toolName}?`,
+          `Auto mode still requires approval for sensitive external-system actions.\n\n${summarizeToolCall(event.toolName, event.input)}`,
+        );
+        if (!ok) return { block: true, reason: `User denied ${event.toolName} in auto mode.` };
+      }
     }
   });
 }
