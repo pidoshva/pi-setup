@@ -60,6 +60,7 @@ cp "$ROOT/extensions/claude-mode.ts" "$AGENT_DIR/extensions/claude-mode.ts"
 cp "$ROOT/config/spinner-verbs.json" "$AGENT_DIR/spinner-verbs.json"
 
 python3 "$ROOT/scripts/configure-keybindings.py" "$AGENT_DIR"
+python3 "$ROOT/scripts/disable-legacy-plan-mode-conflicts.py" "$AGENT_DIR"
 python3 "$ROOT/scripts/patch-pi.py" "$PI_PACKAGE_DIR"
 
 if [[ -n "$PROJECT_DIR" ]]; then

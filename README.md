@@ -13,6 +13,7 @@ Installs global Pi resources:
   - auto mode injects autonomous implementation instructions
 - custom spinner verbs
 - keybinding config that moves Pi's thinking-level cycle from `Shift+Tab` to `Ctrl+Shift+T`
+- legacy `plan-mode.ts` conflict cleanup so older global plan-mode extensions no longer steal `Shift+Tab` or `/mode`
 - runtime patches for the installed Pi package:
   - recover interactive UI after errors instead of exiting
   - force full redraw after extension overlays close
