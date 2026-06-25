@@ -9,7 +9,7 @@ from pathlib import Path
 
 DEFAULT_SETTINGS = {
     "enableSkillCommands": True,
-    "skills": ["../.claude/skills", "../.codex/skills"],
+    "skills": ["../.claude/skills", "../.codex/skills/code-improver"],
     "prompts": ["../.claude/commands"],
     "compaction": {"enabled": True, "reserveTokens": 16384, "keepRecentTokens": 24000},
     "branchSummary": {"enabled": True, "reserveTokens": 16384},
@@ -27,6 +27,9 @@ def load_json(path: Path) -> dict:
 
 def merge_unique(existing, values):
     result = list(existing) if isinstance(existing, list) else []
+    # The full Codex skill directory duplicates many Claude skill names. Keep only
+    # unique Codex skills that are not already represented in .claude/skills.
+    result = [value for value in result if value != "../.codex/skills"]
     for value in values:
         if value not in result:
             result.append(value)

@@ -2,7 +2,7 @@
   "enableSkillCommands": true,
   "skills": [
     "../.claude/skills",
-    "../.codex/skills"
+    "../.codex/skills/code-improver"
   ],
   "prompts": [
     "../.claude/commands"

@@ -24,7 +24,7 @@ Can also install project-local Claude compatibility resources:
 
 - `.pi/settings.json` with:
   - Claude skills loaded from `../.claude/skills`
-  - Codex skills loaded from `../.codex/skills`
+  - unique Codex skills loaded from `../.codex/skills/code-improver` to avoid duplicate Claude/Codex skill names
   - Claude commands loaded as Pi prompt templates from `../.claude/commands`
   - skill commands enabled
   - compaction and branch summaries enabled
