@@ -6,7 +6,13 @@ Installs global Pi resources:
 
 - `neon-friendly` theme
 - `neon-footer` extension
+- `claude-mode` extension
+  - `Shift+Tab` cycles `normal → plan → auto`
+  - `/mode normal|plan|auto` sets the mode explicitly
+  - plan mode injects read-only planning instructions and blocks write/destructive tools
+  - auto mode injects autonomous implementation instructions
 - custom spinner verbs
+- keybinding config that moves Pi's thinking-level cycle from `Shift+Tab` to `Ctrl+Shift+T`
 - runtime patches for the installed Pi package:
   - recover interactive UI after errors instead of exiting
   - force full redraw after extension overlays close
@@ -71,7 +77,7 @@ Theme, footer extension, and spinner verb config can be adjusted and reloaded wi
 /reload
 ```
 
-Runtime patches and project skill/settings discovery require restarting Pi because Node and Pi session startup cache loaded resources.
+Runtime patches, extension changes, and project skill/settings discovery require restarting Pi because Node and Pi session startup cache loaded resources.
 
 ## Notes / limitations
 

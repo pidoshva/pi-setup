@@ -56,8 +56,10 @@ fi
 mkdir -p "$AGENT_DIR/themes" "$AGENT_DIR/extensions"
 cp "$ROOT/themes/neon-friendly.json" "$AGENT_DIR/themes/neon-friendly.json"
 cp "$ROOT/extensions/neon-footer.ts" "$AGENT_DIR/extensions/neon-footer.ts"
+cp "$ROOT/extensions/claude-mode.ts" "$AGENT_DIR/extensions/claude-mode.ts"
 cp "$ROOT/config/spinner-verbs.json" "$AGENT_DIR/spinner-verbs.json"
 
+python3 "$ROOT/scripts/configure-keybindings.py" "$AGENT_DIR"
 python3 "$ROOT/scripts/patch-pi.py" "$PI_PACKAGE_DIR"
 
 if [[ -n "$PROJECT_DIR" ]]; then
