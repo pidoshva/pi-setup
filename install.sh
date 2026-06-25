@@ -3,6 +3,39 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENT_DIR="${PI_AGENT_DIR:-$HOME/.pi/agent}"
+PROJECT_DIR=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --project)
+      PROJECT_DIR="${2:-}"
+      if [[ -z "$PROJECT_DIR" ]]; then
+        echo "--project requires a repo path" >&2
+        exit 2
+      fi
+      shift 2
+      ;;
+    --help|-h)
+      cat <<'USAGE'
+Usage: ./install.sh [--project /path/to/repo]
+
+Installs global Pi theme/footer/spinner/runtime patches.
+
+Options:
+  --project PATH   Also install project-local Claude compatibility resources:
+                   .pi/settings.json, .pi/APPEND_SYSTEM.md, workflow skills,
+                   Claude/Codex skill directory wiring, Claude command prompts,
+                   and copied Claude agents.
+USAGE
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
 if [[ -z "${PI_PACKAGE_DIR:-}" ]]; then
   PI_BIN="$(command -v pi || true)"
   if [[ -n "$PI_BIN" ]]; then
@@ -26,5 +59,9 @@ cp "$ROOT/extensions/neon-footer.ts" "$AGENT_DIR/extensions/neon-footer.ts"
 cp "$ROOT/config/spinner-verbs.json" "$AGENT_DIR/spinner-verbs.json"
 
 python3 "$ROOT/scripts/patch-pi.py" "$PI_PACKAGE_DIR"
+
+if [[ -n "$PROJECT_DIR" ]]; then
+  python3 "$ROOT/scripts/enable-project-compat.py" "$PROJECT_DIR"
+fi
 
 echo "Installed Pi setup. Restart Pi once to load runtime patches, then run /reload for resources."

@@ -1,0 +1,19 @@
+{
+  "enableSkillCommands": true,
+  "skills": [
+    "../.claude/skills",
+    "../.codex/skills"
+  ],
+  "prompts": [
+    "../.claude/commands"
+  ],
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 16384,
+    "keepRecentTokens": 24000
+  },
+  "branchSummary": {
+    "enabled": true,
+    "reserveTokens": 16384
+  }
+}
