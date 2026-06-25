@@ -41,6 +41,52 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
+def clean_global_project_skill_entries(repo: Path) -> int:
+    """Remove project-specific skill dirs from global settings.
+
+    Loading the same project skills globally and project-locally causes Pi skill
+    collision warnings. Project-specific skills should live in the project .pi
+    settings so they only apply when that repo is active.
+    """
+    settings_path = Path.home() / ".pi" / "agent" / "settings.json"
+    if not settings_path.exists():
+        return 0
+
+    settings = load_json(settings_path)
+    skills = settings.get("skills")
+    if not isinstance(skills, list):
+        return 0
+
+    repo_resolved = repo.resolve()
+    removed = 0
+    next_skills = []
+    for value in skills:
+        if not isinstance(value, str):
+            next_skills.append(value)
+            continue
+
+        path = Path(value).expanduser()
+        if not path.is_absolute():
+            next_skills.append(value)
+            continue
+
+        try:
+            resolved = path.resolve()
+            is_project_skill = resolved == repo_resolved / ".claude" / "skills" or resolved == repo_resolved / ".codex" / "skills" or resolved.is_relative_to(repo_resolved / ".claude" / "skills") or resolved.is_relative_to(repo_resolved / ".codex" / "skills")
+        except OSError:
+            is_project_skill = False
+
+        if is_project_skill:
+            removed += 1
+            continue
+        next_skills.append(value)
+
+    if removed:
+        settings["skills"] = next_skills
+        write_json(settings_path, settings)
+    return removed
+
+
 def copy_tree_contents(src: Path, dst: Path) -> None:
     if not src.exists():
         return
@@ -106,12 +152,14 @@ def main() -> int:
 
     normalized = normalize_claude_skills(repo)
     agents = copy_claude_agents(repo)
+    global_removed = clean_global_project_skill_entries(repo)
 
     print(f"Enabled Pi Claude compatibility in {repo}")
     print(f"- wrote/merged {settings_path.relative_to(repo)}")
     print("- installed Claude-like workflow skills and APPEND_SYSTEM.md")
     print(f"- normalized {normalized} lowercase Claude skill files")
     print(f"- copied {agents} Claude agents into .pi/agents")
+    print(f"- removed {global_removed} duplicate project skill entries from global Pi settings")
     print("Restart Pi in this repo to load the updated project resources.")
     return 0
 
