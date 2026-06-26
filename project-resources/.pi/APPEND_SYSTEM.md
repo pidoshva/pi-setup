@@ -28,3 +28,11 @@ Compaction and summaries should preserve:
 - exact next steps
 
 Prefer concise, high-signal context over broad file dumps. Distinguish observed facts from assumptions.
+
+## PR Review Comment Style
+
+When leaving GitHub PR inline comments, keep them short, direct, and human-sounding. Avoid performative praise, formal review-template language, and long explanations. Use plain concrete wording, lowercase conversational style when natural, and make the suggestion obvious.
+
+Good example:
+
+> this removes the leaked key from the client, but the token still gets full key access. should we scope it before merging so logged-in users can’t subscribe to channels they shouldn’t?

@@ -29,7 +29,7 @@ Can also install project-local Claude compatibility resources:
   - Claude commands loaded as Pi prompt templates from `../.claude/commands`
   - skill commands enabled
   - compaction and branch summaries enabled
-- `.pi/APPEND_SYSTEM.md` with a Claude-Code-like work loop
+- `.pi/APPEND_SYSTEM.md` with a Claude-Code-like work loop and short/direct PR review comment style
 - native Pi workflow skills:
   - `architecture-pass`
   - `implementation-plan`
